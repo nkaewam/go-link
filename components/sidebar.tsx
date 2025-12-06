@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
-  { icon: Table, label: "Browse", href: "/browse" },
+  { icon: Table, label: "Browse", href: "/-/browse" },
 ]
 
 export function Sidebar() {
@@ -20,7 +20,7 @@ export function Sidebar() {
       <div className="flex h-full flex-col items-center py-4">
         {/* Header / Search */}
         <div className="mb-6">
-          <Link href="/search">
+          <Link href="/-/search">
             <Button
               variant="filled"
               size="icon"

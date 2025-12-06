@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Search, ArrowLeft, ExternalLink, MoreVertical } from "lucide-react"
 import Link from "next/link"
 import { Suspense } from "react"
+import { motion } from "framer-motion"
 
 function SearchResults() {
   const searchParams = useSearchParams()
@@ -35,9 +36,9 @@ function SearchResults() {
   ]
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/20">
+      <header className="absolute top-0 left-0 right-0 z-10 bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/20">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
           <Link href="/">
             <Button variant="text" size="icon" className="shrink-0">
@@ -56,7 +57,13 @@ function SearchResults() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <motion.main
+        className="max-w-4xl mx-auto px-4 py-8 space-y-6 pt-24"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ ease: "easeInOut", duration: 0.3 }}
+      >
         {
           results.length > 0 && (
             <div className="space-y-2">
@@ -108,7 +115,7 @@ function SearchResults() {
             </Card>
           ))}
         </div>
-      </main>
+      </motion.main>
     </div>
   )
 }
