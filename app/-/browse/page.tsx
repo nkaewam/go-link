@@ -47,7 +47,7 @@ export default function BrowsePage() {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        const res = await fetch("/api/links")
+        const res = await fetch("/-/api/links")
         if (res.ok) {
           const data = await res.json()
           setLinks(data)

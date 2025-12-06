@@ -62,7 +62,7 @@ export default function Home() {
 
   const fetchLinks = async () => {
     try {
-      const res = await fetch("/api/links")
+      const res = await fetch("/-/api/links")
       if (res.ok) {
         const data = await res.json()
         setRecentLinks(data.slice(0, 4)) // Only show top 4
@@ -92,7 +92,7 @@ export default function Home() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setSubmitting(true)
     try {
-      const res = await fetch("/api/links", {
+      const res = await fetch("/-/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

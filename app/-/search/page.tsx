@@ -66,7 +66,7 @@ export default function SearchPage() {
     setSearched(true)
     setLastSearchedQuery(values.query)
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(values.query)}`)
+      const res = await fetch(`/-/api/search?q=${encodeURIComponent(values.query)}`)
       if (res.ok) {
         const data = await res.json()
         setResults(data)
