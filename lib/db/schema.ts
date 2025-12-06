@@ -7,7 +7,7 @@ export const links = pgTable("links", {
   description: text("description"),
   visits: integer("visits").default(0).notNull(),
   owner: text("owner"),
-  embedding: vector("embedding", { dimensions: 1536 }),
+  embedding: vector("embedding", { dimensions: 384 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

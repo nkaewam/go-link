@@ -1,131 +1,184 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+
 import { Input } from "@/components/ui/input"
-import { Search, ArrowLeft, ExternalLink, MoreVertical } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form"
+import { Search, Link2, Copy, BarChart3, Clock, Loader2, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { Suspense } from "react"
-import { motion } from "framer-motion"
 
-function SearchResults() {
-  const searchParams = useSearchParams()
-  const query = searchParams.get("q") || ""
+type SearchResult = {
+  id: number
+  url: string
+  shortCode: string
+  description: string | null
+  visits: number
+  createdAt: string
+  similarity: number
+}
 
-  // Mock results based on query
-  const results = [
-    {
-      title: "Engineering Handbook",
-      url: "https://wiki.company.com/engineering/handbook",
-      description: "The definitive guide to engineering practices, standards, and workflows at our company.",
-      tags: ["wiki", "engineering", "docs"]
-    },
-    {
-      title: "Q4 Roadmap",
-      url: "https://docs.google.com/presentation/d/roadmap-q4",
-      description: "Product and engineering roadmap for Q4 2025. Includes key milestones and deliverables.",
-      tags: ["slides", "planning", "q4"]
-    },
-    {
-      title: "Design System (M3)",
-      url: "https://m3.material.io",
-      description: "Material Design 3 guidelines, components, and resources for building beautiful UIs.",
-      tags: ["design", "resources", "external"]
-    }
-  ]
+const searchSchema = z.object({
+  query: z.string().min(1, "Please enter a search term"),
+})
 
-  return (
-    <div className="min-h-screen bg-background relative">
-      {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-10 bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/20">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
-          <Link href="/">
-            <Button variant="text" size="icon" className="shrink-0">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div className="flex-1 max-w-2xl relative">
-            <Input
-              defaultValue={query}
-              className="h-10 rounded-full bg-surface-container-highest border-none focus-visible:ring-1"
-            />
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          </div>
-          <div className="w-10" /> {/* Spacer for balance */}
-        </div>
-      </header>
+function timeAgo(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-      {/* Main Content */}
-      <motion.main
-        className="max-w-4xl mx-auto px-4 py-8 space-y-6 pt-24"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ ease: "easeInOut", duration: 0.3 }}
-      >
-        {
-          results.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm text-error font-medium">No exact match found for &quot;{query}&quot;</p>
-              <h2 className="text-2xl font-normal text-on-surface">
-                Did you mean...
-              </h2>
-            </div>
-          )
-        }
-
-        <div className="space-y-4">
-          {results.map((result, index) => (
-            <Card key={index} variant="outlined" className="group hover:border-primary/50 transition-colors">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}`}
-                        alt=""
-                        className="w-4 h-4 rounded-full opacity-70"
-                      />
-                      {new URL(result.url).hostname}
-                    </div>
-                    <Link href={result.url} className="block group-hover:underline decoration-primary">
-                      <CardTitle className="text-xl text-primary font-medium">
-                        {result.title}
-                      </CardTitle>
-                    </Link>
-                  </div>
-                  <Button variant="text" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-on-surface-variant max-w-md mx-auto">
-                  We couldn&apos;t find a go link for &quot;{query}&quot;. <br />
-                  Try searching for something else or create a new link.
-                </p>
-                <div className="flex gap-2 mt-4">
-                  {result.tags.map(tag => (
-                    <span key={tag} className="px-3 py-1 rounded-full bg-surface-container-highest text-xs font-medium text-on-surface-variant">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </motion.main>
-    </div>
-  )
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  return `${months}mo ago`
 }
 
 export default function SearchPage() {
+  const [results, setResults] = useState<SearchResult[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+  const [lastSearchedQuery, setLastSearchedQuery] = useState("")
+
+  const form = useForm<z.infer<typeof searchSchema>>({
+    resolver: zodResolver(searchSchema),
+    defaultValues: {
+      query: "",
+    },
+  })
+
+  const onSubmit = async (values: z.infer<typeof searchSchema>) => {
+    setLoading(true)
+    setSearched(true)
+    setLastSearchedQuery(values.query)
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(values.query)}`)
+      if (res.ok) {
+        const data = await res.json()
+        setResults(data)
+      }
+    } catch (error) {
+      console.error("Search failed", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <SearchResults />
-    </Suspense>
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-hidden relative">
+      <main className="flex-1 p-4 overflow-y-auto">
+        <div className="max-w-3xl mx-auto space-y-8 pt-10">
+
+          {/* Header & Search Bar */}
+          <div className="space-y-6 text-center">
+            <h1 className="text-4xl font-bold tracking-tight">Search Links</h1>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="relative max-w-xl mx-auto">
+                <FormField
+                  control={form.control}
+                  name="query"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="relative group/input">
+                          <Input
+                            placeholder="Search by keyword, description, or concept..."
+                            className="pl-12 h-14 rounded-full bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-lg shadow-sm"
+                            {...field}
+                          />
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                          <Button
+                            type="submit"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full w-10 h-10"
+                            disabled={loading || !field.value.trim()}
+                          >
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </div>
+
+          {/* Results */}
+          <div className="space-y-4">
+            {loading ? (
+              <div className="text-center py-10 text-muted-foreground">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                Searching...
+              </div>
+            ) : searched && results.length === 0 ? (
+              <div className="text-center py-10 text-muted-foreground">
+                No results found for "{lastSearchedQuery}".
+              </div>
+            ) : (
+              results.map((result) => (
+                <Card key={result.id} className="border-none bg-surface-container-low/50 hover:bg-surface-container-high/50 transition-colors">
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                        <Link2 className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <Link href={`/${result.shortCode}`} target="_blank" className="text-xl font-semibold text-primary hover:underline truncate block">
+                            go/{result.shortCode}
+                          </Link>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-muted-foreground bg-surface-container px-2 py-1 rounded-md">
+                              {(result.similarity * 100).toFixed(0)}% match
+                            </span>
+                            <Button variant="text" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => {
+                              navigator.clipboard.writeText(`${window.location.origin}/${result.shortCode}`)
+                              alert("Copied to clipboard!")
+                            }}>
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{result.url}</p>
+                        {result.description && (
+                          <p className="text-sm text-on-surface-variant line-clamp-2 mt-2">{result.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 pt-2 mt-2 text-xs text-muted-foreground border-t border-outline-variant/20">
+                          <span className="flex items-center gap-1">
+                            <BarChart3 className="w-3 h-3" />
+                            {result.visits} visits
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {timeAgo(result.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+
+        </div>
+      </main>
+    </div>
   )
 }

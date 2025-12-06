@@ -15,6 +15,13 @@
       "when": 1765060884069,
       "tag": "0001_soft_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765061573977,
+      "tag": "0002_little_elektra",
+      "breakpoints": true
     }
   ]
 }
