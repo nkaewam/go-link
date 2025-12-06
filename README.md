@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Go Links
+
+A modern, intelligent URL shortener for your internal tools and resources. Create memorable `go/` links, track usage, and find what you need with semantic search.
+
+![Website Preview](docs/website.png)
+
+## Features
+
+- 🚀 **Smart Shortening**: Create custom `go/alias` links for any URL.
+- 🧠 **Semantic Search**: Can't remember the exact alias? Search by description or concept using our AI-powered vector search.
+- 📊 **Analytics**: Track visit counts for every link to understand usage patterns.
+- 🎨 **Modern UI**: Built with Material 3 Expressive design principles for a beautiful, responsive experience.
+- ⚡ **High Performance**: Powered by Next.js 16 and Bun.
+
+## Semantic Search
+
+Semantic search allows you to find links even if you don't remember the exact alias. By embedding descriptions and keywords, we can match your query to the most relevant links.
+
+![Link Search](docs/link-search.png)
+
+## Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Language**: TypeScript
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
+- **Database**: PostgreSQL with `pgvector` extension
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **AI/ML**: Local embeddings with [@xenova/transformers](https://huggingface.co/docs/transformers.js/index)
+
+## Prerequisites
+
+- **Docker** & **Docker Compose** (for the database)
+- **Node.js** (v20+) or **Bun**
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd go-links
+```
+
+### 2. Start the Database
+
+Start the PostgreSQL instance with `pgvector` enabled:
+
+```bash
+docker-compose up -d
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+# or
+bun install
+```
+
+### 4. Setup Database Schema
+
+Generate and apply the database migrations:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+### 5. Run the Development Server
 
 ```bash
 npm run dev
 # or
-yarn dev
-# or
-pnpm dev
-# or
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to start creating links.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/`: Next.js App Router pages and API routes.
+    - `page.tsx`: Main dashboard for creating links.
+    - `[short_code]/`: Dynamic route for handling link redirects.
+    - `-/browse/`: Page to browse all created links.
+    - `-/search/`: Semantic search interface.
+    - `-/api/`: Backend API endpoints.
+- `lib/db/`: Database configuration and Drizzle schema.
+- `components/`: Reusable UI components.
+- `drizzle/`: Database migration files.
 
-## Learn More
+## Database Management
 
-To learn more about Next.js, take a look at the following resources:
+This project uses Drizzle Kit for database management.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Generate Migrations**: `npm run db:generate`
+- **Apply Migrations**: `npm run db:migrate`
+- **Drizzle Studio**: `npm run db:studio` (Opens a GUI to manage data)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
