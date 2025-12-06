@@ -37,76 +37,76 @@ export default function Home() {
         <div className="space-y-4">
 
           {/* Top Section: The "Big Bento Card" for Creation */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <Card className="lg:col-span-12 border-none shadow-2xl bg-surface-container-high/50 backdrop-blur-xl rounded-3xl overflow-hidden relative group">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+            {/* Left Side: Form */}
+            <Card className="lg:col-span-4 border-none bg-surface-container-high/50 backdrop-blur-xl rounded-3xl overflow-hidden relative group h-full">
+              <div className="p-8 md:p-12 bg-surface-container-highest/30 flex flex-col justify-center h-full">
+                <form onSubmit={handleCreate} className="space-y-6 max-w-md mx-auto w-full">
+                  <div className="space-y-2">
+                    <Label htmlFor="destination" className="text-on-surface-variant">Destination</Label>
+                    <div className="relative group/input">
+                      <Input
+                        id="destination"
+                        placeholder="https://google.com"
+                        className="pl-10 h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        value={destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                      />
+                      <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="alias" className="text-on-surface-variant">Short Alias</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-medium text-primary font-mono">go/</span>
+                      <Input
+                        id="alias"
+                        placeholder="roadmap"
+                        className="font-mono text-lg h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        value={alias}
+                        onChange={(e) => setAlias(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <Button size="lg" className="px-12 w-auto h-18 text-xl font-semibold rounded-full bg-primary hover:bg-primary/90 text-on-primary transition-all" type="submit">
+                    <Plus className="mr-2 w-8 h-8" />
+                    Create Link
+                  </Button>
+                </form>
+              </div>
+            </Card>
+            {/* Right Side: Hero/Info */}
+            <Card className="lg:col-span-8 border-none bg-surface-container-high/50 backdrop-blur-xl rounded-3xl overflow-hidden relative group h-full">
               <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-tertiary/5 opacity-0 transition-opacity duration-500 pointer-events-none" />
-
-              <div className="grid lg:grid-cols-12 gap-0 h-full">
-                {/* Left Side: Hero/Info */}
-                <div className="lg:col-span-5 p-8 md:p-12 flex flex-col justify-center space-y-6 bg-surface-container-low/50">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container w-fit text-on-secondary-container text-sm font-medium">
-                    <Sparkles className="w-4 h-4" />
-                    <span>New Link</span>
-                  </div>
-                  <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-on-surface leading-[1.1]">
-                    Create <br />
-                    <span className="text-primary">Short Links</span>
-                  </h1>
-                  <p className="text-lg text-on-surface-variant leading-relaxed">
-                    Transform long URLs into memorable go links. Organize your workflow with style.
-                  </p>
-
-                  <div className="flex items-center gap-4 text-sm text-on-surface-variant/80 pt-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-green-400" />
-                      <span>Active</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <BarChart3 className="w-4 h-4" />
-                      <span>Analytics enabled</span>
-                    </div>
-                  </div>
+              <div className="p-8 md:p-12 flex flex-col justify-center space-y-6 h-full bg-surface-container-low/50">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container w-fit text-on-secondary-container text-sm font-medium">
+                  <Sparkles className="w-4 h-4" />
+                  <span>New Link</span>
                 </div>
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-on-surface leading-[1.1]">
+                  Create <br />
+                  <span className="text-primary">Short Links</span>
+                </h1>
+                <p className="text-lg text-on-surface-variant leading-relaxed">
+                  Transform long URLs into memorable go links. Organize your workflow with style.
+                </p>
 
-                {/* Right Side: Form */}
-                <div className="lg:col-span-7 p-8 md:p-12 bg-surface-container-highest/30 flex flex-col justify-center">
-                  <form onSubmit={handleCreate} className="space-y-6 max-w-md mx-auto w-full">
-                    <div className="space-y-2">
-                      <Label htmlFor="destination" className="text-on-surface-variant">Destination</Label>
-                      <div className="relative group/input">
-                        <Input
-                          id="destination"
-                          placeholder="https://google.com"
-                          className="pl-10 h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                          value={destination}
-                          onChange={(e) => setDestination(e.target.value)}
-                        />
-                        <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="alias" className="text-on-surface-variant">Short Alias</Label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-medium text-primary font-mono">go/</span>
-                        <Input
-                          id="alias"
-                          placeholder="roadmap"
-                          className="font-mono text-lg h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                          value={alias}
-                          onChange={(e) => setAlias(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <Button size="lg" className="w-full h-20 text-2xl font-semibold rounded-full bg-primary hover:bg-primary/90 text-on-primary transition-all hover:scale-[1.02] active:scale-[0.98]" type="submit">
-                      <Plus className="mr-2 w-8 h-8" />
-                      Create Link
-                    </Button>
-                  </form>
+                <div className="flex items-center gap-4 text-sm text-on-surface-variant/80 pt-4 mt-auto">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-green-400" />
+                    <span>Active</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <BarChart3 className="w-4 h-4" />
+                    <span>Analytics enabled</span>
+                  </div>
                 </div>
               </div>
             </Card>
+
+
           </div>
 
           {/* Bottom Section: Recently Created */}
