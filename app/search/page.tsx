@@ -57,12 +57,16 @@ function SearchResults() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="space-y-2">
-          <p className="text-sm text-error font-medium">No exact match found for "{query}"</p>
-          <h2 className="text-2xl font-normal text-on-surface">
-            Did you mean...
-          </h2>
-        </div>
+        {
+          results.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-error font-medium">No exact match found for "{query}"</p>
+              <h2 className="text-2xl font-normal text-on-surface">
+                Did you mean...
+              </h2>
+            </div>
+          )
+        }
 
         <div className="space-y-4">
           {results.map((result, index) => (

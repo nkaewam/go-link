@@ -1,26 +1,54 @@
 "use client"
 
-import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Link2, Plus, Sparkles, Copy, ExternalLink, Clock, BarChart3, ArrowRight } from "lucide-react"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Card, CardContent } from "@/components/ui/card"
+import { Link2, Plus, Sparkles, Copy, Clock, BarChart3, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+
+const formSchema = z.object({
+  destination: z.string().url({
+    message: "Please enter a valid URL.",
+  }),
+  alias: z.string().min(2, {
+    message: "Alias must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+})
 
 export default function Home() {
-  const [destination, setDestination] = useState("")
-  const [alias, setAlias] = useState("")
   const router = useRouter()
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!destination || !alias) return
+  // 1. Define your form.
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      destination: "",
+      alias: "",
+      description: "",
+    },
+  })
 
-    // Mock creation
-    alert(`Created go/${alias} -> ${destination}`)
-    setDestination("")
-    setAlias("")
+  // 2. Define a submit handler.
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values)
+    alert(`Created go/${values.alias} -> ${values.destination}\nDescription: ${values.description || "N/A"}`)
+    form.reset()
   }
 
   const recentLinks = [
@@ -41,40 +69,74 @@ export default function Home() {
             {/* Left Side: Form */}
             <Card className="lg:col-span-4 border-none bg-surface-container-high/50 backdrop-blur-xl rounded-3xl overflow-hidden relative group h-full">
               <div className="p-8 md:p-12 bg-surface-container-highest/30 flex flex-col justify-center h-full">
-                <form onSubmit={handleCreate} className="space-y-6 max-w-md mx-auto w-full">
-                  <div className="space-y-2">
-                    <Label htmlFor="destination" className="text-on-surface-variant">Destination</Label>
-                    <div className="relative group/input">
-                      <Input
-                        id="destination"
-                        placeholder="https://google.com"
-                        className="pl-10 h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                      />
-                      <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
-                    </div>
-                  </div>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-md mx-auto w-full">
+                    <FormField
+                      control={form.control}
+                      name="destination"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-on-surface-variant">Destination</FormLabel>
+                          <FormControl>
+                            <div className="relative group/input">
+                              <Input
+                                placeholder="https://google.com"
+                                className="pl-10 h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                {...field}
+                              />
+                              <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="alias" className="text-on-surface-variant">Short Alias</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-medium text-primary font-mono">go/</span>
-                      <Input
-                        id="alias"
-                        placeholder="roadmap"
-                        className="font-mono text-lg h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                        value={alias}
-                        onChange={(e) => setAlias(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                    <FormField
+                      control={form.control}
+                      name="alias"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-on-surface-variant">Short Alias</FormLabel>
+                          <FormControl>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl font-medium text-primary font-mono">go/</span>
+                              <Input
+                                placeholder="roadmap"
+                                className="font-mono text-lg h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <Button size="lg" className="px-12 w-auto h-18 text-xl font-semibold rounded-full bg-primary hover:bg-primary/90 text-on-primary transition-all" type="submit">
-                    <Plus className="mr-2 w-8 h-8" />
-                    Create Link
-                  </Button>
-                </form>
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-on-surface-variant">Description <span className="text-muted-foreground text-xs font-normal ml-1">(Optional)</span></FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Project roadmap and timeline"
+                              className="h-14 rounded-2xl bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button size="lg" className="px-12 w-auto h-18 text-xl font-semibold rounded-full bg-primary hover:bg-primary/90 text-on-primary transition-all" type="submit">
+                      <Plus className="mr-2 w-8 h-8" />
+                      Create Link
+                    </Button>
+                  </form>
+                </Form>
               </div>
             </Card>
             {/* Right Side: Hero/Info */}
@@ -116,9 +178,11 @@ export default function Home() {
                 <Clock className="w-5 h-5 text-primary" />
                 Recently Created
               </h2>
-              <Button variant="text" size="sm" className="text-primary hover:text-primary/80">
-                View all <ArrowRight className="ml-1 w-4 h-4" />
-              </Button>
+              <Link href="/browse">
+                <Button variant="text" size="sm" className="text-primary hover:text-primary/80">
+                  View all <ArrowRight className="ml-1 w-4 h-4" />
+                </Button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
