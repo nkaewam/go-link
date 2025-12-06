@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Copy, Trash2, Edit2, Loader2 } from "lucide-react"
+import { Search, Copy, Trash2, Edit2, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -12,7 +12,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+
+
+// Simple debounce hook implementation if not exists, but let's check if I can just use setTimeout
+function useDebounceValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 type LinkData = {
   id: number
@@ -21,6 +39,13 @@ type LinkData = {
   visits: number
   createdAt: string
   owner: string | null
+}
+
+type PaginationData = {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }
 
 function timeAgo(dateString: string) {
@@ -43,28 +68,40 @@ export default function BrowsePage() {
   const [links, setLinks] = useState<LinkData[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationData | null>(null)
 
-  useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        const res = await fetch("/-/api/links")
-        if (res.ok) {
-          const data = await res.json()
-          setLinks(data)
-        }
-      } catch (error) {
-        console.error("Failed to fetch links", error)
-      } finally {
-        setLoading(false)
+  const debouncedSearch = useDebounceValue(search, 500)
+
+  const fetchLinks = useCallback(async (currentPage: number, currentSearch: string) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: "10",
+        search: currentSearch,
+      })
+      const res = await fetch(`/-/api/links?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setLinks(data.data)
+        setPagination(data.pagination)
       }
+    } catch (error) {
+      console.error("Failed to fetch links", error)
+    } finally {
+      setLoading(false)
     }
-    fetchLinks()
   }, [])
 
-  const filteredLinks = links.filter(link =>
-    link.shortCode.toLowerCase().includes(search.toLowerCase()) ||
-    link.url.toLowerCase().includes(search.toLowerCase())
-  )
+  useEffect(() => {
+    fetchLinks(page, debouncedSearch)
+  }, [fetchLinks, page, debouncedSearch])
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch])
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -86,74 +123,110 @@ export default function BrowsePage() {
         </div>
       </div>
 
-      <Card className="border-none bg-surface-container-low overflow-hidden rounded-3xl">
-        <Table>
-          <TableHeader className="bg-surface-container-highest/50">
-            <TableRow className="hover:bg-transparent border-none">
-              <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Alias</TableHead>
-              <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Destination</TableHead>
-              <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Visits</TableHead>
-              <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Created</TableHead>
-              <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Owner</TableHead>
-              <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  <div className="flex justify-center items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Loading...
-                  </div>
-                </TableCell>
+      <Card className="border-none bg-surface-container-low overflow-hidden rounded-3xl flex flex-col">
+        <div className="flex-1 overflow-auto">
+          <Table>
+            <TableHeader className="bg-surface-container-highest/50">
+              <TableRow className="hover:bg-transparent border-none">
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Alias</TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Destination</TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Visits</TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Created</TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Owner</TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium text-right">Actions</TableHead>
               </TableRow>
-            ) : filteredLinks.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  No links found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredLinks.map((link) => (
-                <TableRow key={link.id} className="group border-outline-variant/10 hover:bg-surface-container-highest/30">
-                  <TableCell className="px-6 py-4 font-medium text-primary font-mono text-base">
-                    <a href={`http://localhost:3000/${link.shortCode}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      go/{link.shortCode}
-                    </a>
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-on-surface-variant max-w-[300px] truncate">
-                    {link.url}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-on-surface-variant">
-                    {link.visits}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-on-surface-variant">
-                    {timeAgo(link.createdAt)}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-on-surface-variant">
-                    {link.owner || "-"}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-primary" onClick={() => {
-                        navigator.clipboard.writeText(`http://localhost:3000/${link.shortCode}`)
-                        alert("Copied to clipboard!")
-                      }}>
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-primary">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-error hover:bg-error/10">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <div className="flex justify-center items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Loading...
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+              ) : links.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No links found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                    links.map((link) => (
+                      <TableRow key={link.id} className="group border-outline-variant/10 hover:bg-surface-container-highest/30">
+                        <TableCell className="px-6 py-4 font-medium text-primary font-mono text-base">
+                          <a href={`http://localhost:3000/${link.shortCode}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                            go/{link.shortCode}
+                          </a>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-on-surface-variant max-w-[300px] truncate">
+                          {link.url}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-on-surface-variant">
+                          {link.visits}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-on-surface-variant">
+                          {timeAgo(link.createdAt)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-on-surface-variant">
+                          {link.owner || "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-primary" onClick={() => {
+                          navigator.clipboard.writeText(`go/${link.shortCode}`)
+                          alert("Copied to clipboard!")
+                        }}>
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-primary">
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-error hover:bg-error/10">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-outline-variant/10 bg-surface-container-low">
+          <div className="text-sm text-on-surface-variant">
+            {pagination && (
+              <>
+                Showing <span className="font-medium">{Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}</span> to <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span className="font-medium">{pagination.total}</span> results
+              </>
             )}
-          </TableBody>
-        </Table>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1 || loading}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-sm font-medium text-on-surface min-w-12 text-center">
+              Page {page} of {pagination?.totalPages || 1}
+            </div>
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={() => setPage(p => Math.min(pagination?.totalPages || 1, p + 1))}
+              disabled={!pagination || page === pagination.totalPages || loading}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   )

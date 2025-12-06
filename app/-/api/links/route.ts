@@ -1,7 +1,7 @@
 import { db } from "@/lib/db"
 import { links } from "@/lib/db/schema"
 import { NextResponse } from "next/server"
-import { desc, eq } from "drizzle-orm"
+import { desc, eq, or, ilike, sql, count } from "drizzle-orm"
 import { z } from "zod"
 import { pipeline } from "@xenova/transformers"
 
@@ -60,10 +60,44 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const allLinks = await db.select().from(links).orderBy(desc(links.createdAt))
-    return NextResponse.json(allLinks)
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "10")
+    const search = searchParams.get("search") || ""
+    const offset = (page - 1) * limit
+
+    // Build where clause
+    const whereClause = search 
+      ? or(
+          ilike(links.shortCode, `%${search}%`),
+          ilike(links.url, `%${search}%`)
+        )
+      : undefined
+
+    // Get total count
+    const [{ value: total }] = await db.select({ value: count() })
+      .from(links)
+      .where(whereClause)
+
+    // Get paginated data
+    const data = await db.select()
+      .from(links)
+      .where(whereClause)
+      .orderBy(desc(links.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    return NextResponse.json({
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    })
   } catch (error) {
     console.error("Error fetching links:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })

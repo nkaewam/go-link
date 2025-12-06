@@ -171,7 +171,7 @@ function SearchPageContent() {
                               {(result.similarity * 100).toFixed(0)}% match
                             </span>
                             <Button variant="text" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => {
-                              navigator.clipboard.writeText(`${window.location.origin}/${result.shortCode}`)
+                              navigator.clipboard.writeText(`go/${result.shortCode}`)
                               alert("Copied to clipboard!")
                             }}>
                               <Copy className="w-4 h-4" />

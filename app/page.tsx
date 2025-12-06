@@ -62,10 +62,10 @@ export default function Home() {
 
   const fetchLinks = async () => {
     try {
-      const res = await fetch("/-/api/links")
+      const res = await fetch("/-/api/links?limit=4")
       if (res.ok) {
         const data = await res.json()
-        setRecentLinks(data.slice(0, 4)) // Only show top 4
+        setRecentLinks(data.data) // API now returns paginated structure
       }
     } catch (error) {
       console.error("Failed to fetch links", error)
@@ -263,7 +263,7 @@ export default function Home() {
                           <Link2 className="w-5 h-5" />
                         </div>
                         <Button variant="text" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary -mr-2 -mt-2" onClick={() => {
-                          navigator.clipboard.writeText(`http://localhost:3000/${link.shortCode}`)
+                          navigator.clipboard.writeText(`go/${link.shortCode}`)
                           alert("Copied to clipboard!")
                         }}>
                           <Copy className="w-4 h-4" />
