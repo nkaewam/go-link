@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Card, CardContent } from "@/components/ui/card"
-import { Link2, Plus, Sparkles, Copy, Clock, BarChart3, ArrowRight } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Link2, Plus, Sparkles, Copy, Clock, BarChart3, ArrowRight, Loader2 } from "lucide-react"
+// import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 const formSchema = z.object({
@@ -29,8 +30,53 @@ const formSchema = z.object({
   description: z.string().optional(),
 })
 
+type LinkData = {
+  id: number
+  url: string
+  shortCode: string
+  visits: number
+  createdAt: string
+}
+
+function timeAgo(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  return `${months}mo ago`
+}
+
 export default function Home() {
-  const router = useRouter()
+  // const router = useRouter()
+  const [recentLinks, setRecentLinks] = useState<LinkData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchLinks = async () => {
+    try {
+      const res = await fetch("/api/links")
+      if (res.ok) {
+        const data = await res.json()
+        setRecentLinks(data.slice(0, 4)) // Only show top 4
+      }
+    } catch (error) {
+      console.error("Failed to fetch links", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchLinks()
+  }, [])
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,20 +89,38 @@ export default function Home() {
   })
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values)
-    alert(`Created go/${values.alias} -> ${values.destination}\nDescription: ${values.description || "N/A"}`)
-    form.reset()
-  }
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setSubmitting(true)
+    try {
+      const res = await fetch("/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: values.destination,
+          shortCode: values.alias,
+          description: values.description,
+        }),
+      })
 
-  const recentLinks = [
-    { alias: "roadmap", url: "https://linear.app/my-team/roadmap", visits: 124, created: "2h ago" },
-    { alias: "standup", url: "https://meet.google.com/abc-defg-hij", visits: 89, created: "1d ago" },
-    { alias: "design", url: "https://www.figma.com/file/Mk4...", visits: 456, created: "3d ago" },
-    { alias: "prod-logs", url: "https://datadoghq.com/logs/...", visits: 12, created: "1w ago" },
-  ]
+      if (!res.ok) {
+        const error = await res.json()
+        if (res.status === 409) {
+          form.setError("alias", { message: "Alias already exists" })
+        } else {
+          alert("Failed to create link: " + error.error)
+        }
+        return
+      }
+
+      form.reset()
+      fetchLinks() // Refresh list
+    } catch (error) {
+      console.error("Error submitting form", error)
+      alert("An error occurred")
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-hidden relative">
@@ -131,9 +195,9 @@ export default function Home() {
                       )}
                     />
 
-                    <Button size="lg" className="px-12 w-auto h-18 text-xl font-semibold rounded-full bg-primary hover:bg-primary/90 text-on-primary transition-all" type="submit">
-                      <Plus className="mr-2 w-8 h-8" />
-                      Create Link
+                    <Button size="lg" className="px-12 w-auto h-18 text-xl font-semibold rounded-full bg-primary hover:bg-primary/90 text-on-primary transition-all" type="submit" disabled={submitting}>
+                      {submitting ? <Loader2 className="mr-2 w-8 h-8 animate-spin" /> : <Plus className="mr-2 w-8 h-8" />}
+                      {submitting ? "Creating..." : "Create Link"}
                     </Button>
                   </form>
                 </Form>
@@ -186,33 +250,42 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {recentLinks.map((link) => (
-                <Card key={link.alias} variant="filled" className="group hover:bg-surface-container-high transition-colors cursor-pointer border-none">
-                  <CardContent className="p-5 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="p-2 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                        <Link2 className="w-5 h-5" />
+              {loading ? (
+                <div className="col-span-full text-center text-muted-foreground py-10">Loading recent links...</div>
+              ) : recentLinks.length === 0 ? (
+                <div className="col-span-full text-center text-muted-foreground py-10">No links created yet.</div>
+              ) : (
+                recentLinks.map((link) => (
+                  <Card key={link.id} variant="filled" className="group hover:bg-surface-container-high transition-colors cursor-pointer border-none">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="p-2 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                          <Link2 className="w-5 h-5" />
+                        </div>
+                        <Button variant="text" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary -mr-2 -mt-2" onClick={() => {
+                          navigator.clipboard.writeText(`http://localhost:3000/${link.shortCode}`)
+                          alert("Copied to clipboard!")
+                        }}>
+                          <Copy className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <Button variant="text" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary -mr-2 -mt-2">
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
 
-                    <div>
-                      <div className="font-mono text-lg font-medium text-primary truncate">go/{link.alias}</div>
-                      <div className="text-sm text-muted-foreground truncate">{link.url}</div>
-                    </div>
+                      <div>
+                        <div className="font-mono text-lg font-medium text-primary truncate">go/{link.shortCode}</div>
+                        <div className="text-sm text-muted-foreground truncate">{link.url}</div>
+                      </div>
 
-                    <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-outline-variant/20 mt-2">
-                      <span className="flex items-center gap-1">
-                        <BarChart3 className="w-3 h-3" />
-                        {link.visits} visits
-                      </span>
-                      <span>{link.created}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-outline-variant/20 mt-2">
+                        <span className="flex items-center gap-1">
+                          <BarChart3 className="w-3 h-3" />
+                          {link.visits} visits
+                        </span>
+                        <span>{timeAgo(link.createdAt)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 

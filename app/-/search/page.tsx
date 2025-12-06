@@ -67,7 +67,7 @@ function SearchResults() {
         {
           results.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm text-error font-medium">No exact match found for "{query}"</p>
+              <p className="text-sm text-error font-medium">No exact match found for &quot;{query}&quot;</p>
               <h2 className="text-2xl font-normal text-on-surface">
                 Did you mean...
               </h2>
@@ -82,6 +82,7 @@ function SearchResults() {
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={`https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}`}
                         alt=""
@@ -101,8 +102,9 @@ function SearchResults() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-on-surface-variant leading-relaxed">
-                  {result.description}
+                <p className="text-on-surface-variant max-w-md mx-auto">
+                  We couldn&apos;t find a go link for &quot;{query}&quot;. <br />
+                  Try searching for something else or create a new link.
                 </p>
                 <div className="flex gap-2 mt-4">
                   {result.tags.map(tag => (
