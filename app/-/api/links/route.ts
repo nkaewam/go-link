@@ -18,7 +18,9 @@ async function getExtractor() {
 
 const createLinkSchema = z.object({
   url: z.string().url(),
-  shortCode: z.string().min(2),
+  shortCode: z.string().min(2).refine((val) => !val.includes("/") && !val.startsWith("-"), {
+    message: "Alias cannot contain '/' or starts with '-'",
+  }),
   description: z.string().optional(),
 })
 

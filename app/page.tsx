@@ -26,6 +26,8 @@ const formSchema = z.object({
   }),
   alias: z.string().min(2, {
     message: "Alias must be at least 2 characters.",
+  }).refine((val) => !val.includes("/") && !val.startsWith("-"), {
+    message: "Alias cannot contain '/' or starts with '-'",
   }),
   description: z.string().optional(),
 })
