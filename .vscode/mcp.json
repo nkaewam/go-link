@@ -2,10 +2,22 @@
   "servers": {
     "shadcn": {
       "command": "npx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "postgres": {
+      "command": "docker",
       "args": [
-        "shadcn@latest",
-        "mcp"
-      ]
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "DATABASE_URI",
+        "crystaldba/postgres-mcp",
+        "--access-mode=restricted"
+      ],
+      "env": {
+        "DATABASE_URI": "postgres://postgres:postgres@localhost:5432/go_links"
+      }
     }
   }
 }
