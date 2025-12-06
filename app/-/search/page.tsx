@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form"
 import { Search, Link2, Copy, BarChart3, Clock, Loader2, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 
 type SearchResult = {
   id: number
@@ -49,6 +50,14 @@ function timeAgo(dateString: string) {
 }
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center pt-20"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>}>
+      <SearchPageContent />
+    </Suspense>
+  )
+}
+
+function SearchPageContent() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
@@ -61,12 +70,14 @@ export default function SearchPage() {
     },
   })
 
-  const onSubmit = async (values: z.infer<typeof searchSchema>) => {
+  const searchParams = useSearchParams()
+
+  const performSearch = useCallback(async (query: string) => {
     setLoading(true)
     setSearched(true)
-    setLastSearchedQuery(values.query)
+    setLastSearchedQuery(query)
     try {
-      const res = await fetch(`/-/api/search?q=${encodeURIComponent(values.query)}`)
+      const res = await fetch(`/-/api/search?q=${encodeURIComponent(query)}`)
       if (res.ok) {
         const data = await res.json()
         setResults(data)
@@ -76,7 +87,19 @@ export default function SearchPage() {
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  const onSubmit = (values: z.infer<typeof searchSchema>) => {
+    performSearch(values.query)
   }
+
+  useEffect(() => {
+    const query = searchParams.get("q")
+    if (query) {
+      form.setValue("query", query)
+      performSearch(query)
+    }
+  }, [searchParams, performSearch, form])
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-hidden relative">
