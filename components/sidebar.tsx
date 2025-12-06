@@ -21,7 +21,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-[80px] border-r border-outline-variant/20 bg-surface-container-low transition-transform hidden md:block">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-[80px] bg-surface-container-low transition-transform hidden md:block">
       <div className="flex h-full flex-col items-center py-4">
         {/* Header / Search */}
         <div className="mb-6">
