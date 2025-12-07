@@ -3,10 +3,12 @@ import {
   fetchRecentLinks,
   fetchLinks,
   createLink,
+  updateLink,
   searchLinks,
   type LinkData,
   type LinksResponse,
   type CreateLinkParams,
+  type UpdateLinkParams,
   type SearchResult,
 } from "@/lib/api/links";
 
@@ -55,6 +57,22 @@ export function useCreateLink() {
     mutationFn: (params: CreateLinkParams) => createLink(params),
     onSuccess: () => {
       // Invalidate and refetch recent links and list queries
+      queryClient.invalidateQueries({ queryKey: linkKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to update an existing link
+ */
+export function useUpdateLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, params }: { id: number; params: UpdateLinkParams }) =>
+      updateLink(id, params),
+    onSuccess: () => {
+      // Invalidate and refetch all link queries
       queryClient.invalidateQueries({ queryKey: linkKeys.all });
     },
   });

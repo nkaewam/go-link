@@ -26,6 +26,12 @@ export type CreateLinkParams = {
   description?: string;
 };
 
+export type UpdateLinkParams = {
+  url?: string;
+  shortCode?: string;
+  description?: string;
+};
+
 export type SearchResult = {
   id: number;
   url: string;
@@ -90,6 +96,37 @@ export async function createLink(
       throw new Error("Alias already exists");
     }
     throw new Error(error.error || "Failed to create link");
+  }
+
+  return res.json();
+}
+
+/**
+ * Update an existing link
+ */
+export async function updateLink(
+  id: number,
+  params: UpdateLinkParams
+): Promise<LinkData> {
+  const res = await fetch(`/-/api/links/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: params.url,
+      shortCode: params.shortCode,
+      description: params.description,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    if (res.status === 409) {
+      throw new Error("Alias already exists");
+    }
+    if (res.status === 404) {
+      throw new Error("Link not found");
+    }
+    throw new Error(error.error || "Failed to update link");
   }
 
   return res.json();

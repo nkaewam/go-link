@@ -24,6 +24,8 @@ import { useEffect, useState } from "react";
 import { useLinks } from "@/lib/hooks/use-links";
 import { timeAgo } from "@/lib/utils";
 import type { LinkData } from "@/lib/api/links";
+import { EditLinkDialog } from "@/components/links/edit-link-dialog";
+import { toast } from "sonner";
 
 // Simple debounce hook implementation
 function useDebounceValue<T>(value: T, delay: number): T {
@@ -45,6 +47,7 @@ function useDebounceValue<T>(value: T, delay: number): T {
 export default function BrowsePage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [editingLink, setEditingLink] = useState<LinkData | null>(null);
   const debouncedSearch = useDebounceValue(search, 500);
 
   const { data, isLoading: loading } = useLinks(page, 10, debouncedSearch);
@@ -155,11 +158,15 @@ export default function BrowsePage() {
                           variant="text"
                           size="icon"
                           className="h-8 w-8 text-on-surface-variant hover:text-primary"
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              `go/${link.shortCode}`
-                            );
-                            alert("Copied to clipboard!");
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(
+                                `go/${link.shortCode}`
+                              );
+                              toast.success("Copied to clipboard!");
+                            } catch (error) {
+                              toast.error("Failed to copy to clipboard");
+                            }
                           }}
                         >
                           <Copy className="w-4 h-4" />
@@ -168,6 +175,7 @@ export default function BrowsePage() {
                           variant="text"
                           size="icon"
                           className="h-8 w-8 text-on-surface-variant hover:text-primary"
+                          onClick={() => setEditingLink(link)}
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
@@ -240,6 +248,18 @@ export default function BrowsePage() {
           </div>
         </div>
       </Card>
+
+      {editingLink && (
+        <EditLinkDialog
+          link={editingLink}
+          open={!!editingLink}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingLink(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
