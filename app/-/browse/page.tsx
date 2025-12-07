@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Link2,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -64,7 +65,10 @@ export default function BrowsePage() {
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface">Browse Links</h1>
+          <div className="flex items-center gap-2">
+            <Link2 className="relative top-1 w-6 h-6 text-primary" />
+            <h1 className="text-3xl font-bold text-primary">go/-/browse</h1>
+          </div>
           <p className="text-on-surface-variant mt-1">
             Manage and view all your go links
           </p>

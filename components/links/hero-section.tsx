@@ -13,12 +13,12 @@ export function HeroSection() {
           <span>New Link</span>
         </div>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-on-surface leading-[1.1]">
-          Create <br />
-          <span className="text-primary">Short Links</span>
+          go<span className="text-primary">/</span>
         </h1>
         <p className="text-lg text-on-surface-variant leading-relaxed">
           Transform long URLs into memorable go links. Organize your workflow
-          with style.
+          with style. <br />
+          Create with of hate of remembering things by nkaewam@
         </p>
 
         <div className="flex items-center gap-4 text-sm text-on-surface-variant/80 pt-4 mt-auto">
@@ -35,4 +35,3 @@ export function HeroSection() {
     </Card>
   );
 }
-

@@ -11,10 +11,15 @@ interface LinkCardProps {
 }
 
 export function LinkCard({ link }: LinkCardProps) {
+  const handleNavigate = () => {
+    window.open(`http://go/${link.shortCode}`, "_blank");
+  };
+
   return (
     <Card
       variant="filled"
       className="group hover:bg-surface-container-high transition-colors cursor-pointer border-none"
+      onClick={handleNavigate}
     >
       <CardContent className="p-5 space-y-3">
         <div className="flex items-start justify-between">
@@ -25,15 +30,18 @@ export function LinkCard({ link }: LinkCardProps) {
             variant="text"
             size="icon"
             className="h-8 w-8 text-on-surface-variant hover:text-primary -mr-2 -mt-2"
-            onClick={() => copyToClipboard(`go/${link.shortCode}`)}
+            onClick={(event) => {
+              event.stopPropagation();
+              copyToClipboard(`go/${link.shortCode}`);
+            }}
           >
             <Copy className="w-4 h-4" />
           </Button>
         </div>
 
         <div>
-          <div className="font-mono text-lg font-medium text-primary truncate">
-            go/{link.shortCode}
+          <div className="font-mono text-lg font-medium truncate">
+            go<span className="text-primary">/{link.shortCode}</span>
           </div>
           <div className="text-sm text-muted-foreground truncate">
             {link.url}
@@ -51,4 +59,3 @@ export function LinkCard({ link }: LinkCardProps) {
     </Card>
   );
 }
-

@@ -162,7 +162,10 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface">Analytics</h1>
+          <div className="flex items-center gap-2">
+            <Link2 className="relative top-1 w-6 h-6 text-primary" />
+            <h1 className="text-3xl font-bold text-primary">go/-/analytics</h1>
+          </div>
           <p className="text-on-surface-variant mt-1">
             Discover popular links and identify low-usage links
           </p>

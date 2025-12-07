@@ -5,8 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -14,6 +12,12 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Search,
   Link2,
@@ -80,34 +84,41 @@ function SearchPageContent() {
   }, [searchParams, form]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-hidden relative">
-      <main className="flex-1 p-4 overflow-y-auto">
-        <div className="max-w-3xl mx-auto space-y-8 pt-10">
-          {/* Header & Search Bar */}
-          <div className="space-y-6 text-center">
-            <h1 className="text-4xl font-bold tracking-tight">Search Links</h1>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="relative max-w-xl mx-auto"
-              >
-                <FormField
-                  control={form.control}
-                  name="query"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative group/input">
-                          <Input
-                            placeholder="Search by keyword, description, or concept..."
-                            className="pl-12 h-14 rounded-full bg-surface-container-highest border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-lg shadow-sm"
-                            {...field}
-                          />
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
-                          <Button
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-outline-variant/30 bg-background/80 backdrop-blur">
+        <div className="max-w-5xl mx-auto flex flex-col gap-3 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-2 text-lg font-semibold text-primary">
+              <Link2 className="w-5 h-5" />
+              go/-/search
+            </div>
+          </div>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="w-full"
+              role="search"
+            >
+              <FormField
+                control={form.control}
+                name="query"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormControl>
+                      <InputGroup>
+                        <InputGroupInput
+                          placeholder="Search links like you would on Google..."
+                          autoFocus
+                          {...field}
+                        />
+                        <InputGroupAddon align="inline-start">
+                          <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+                        </InputGroupAddon>
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupButton
                             type="submit"
                             size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full w-10 h-10"
+                            className="h-10 w-10"
                             disabled={loading || !field.value.trim()}
                           >
                             {loading ? (
@@ -115,108 +126,113 @@ function SearchPageContent() {
                             ) : (
                               <ArrowRight className="w-4 h-4" />
                             )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </form>
-            </Form>
-          </div>
+                          </InputGroupButton>
+                        </InputGroupAddon>
+                      </InputGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </div>
+      </header>
 
-          {/* Results */}
-          <div className="space-y-4">
-            {loading ? (
-              <div className="text-center py-10 text-muted-foreground">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Searching...
-              </div>
-            ) : searched && results.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
-                No results found for "{searchQuery}".
-              </div>
-            ) : (
-              results.map((result) => (
-                <Card
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {loading ? (
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Searching…
+          </div>
+        ) : searched && results.length === 0 ? (
+          <div className="text-muted-foreground text-sm">
+            No results found for “{searchQuery}”.
+          </div>
+        ) : !searched ? (
+          <div className="text-muted-foreground text-sm">
+            Start typing to search your links.
+          </div>
+        ) : (
+          <>
+            <div className="text-xs text-muted-foreground">
+              About {results.length} results for “{searchQuery}”
+            </div>
+            <div className="space-y-5">
+              {results.map((result) => (
+                <div
                   key={result.id}
-                  className="border-none bg-surface-container-low/50 hover:bg-surface-container-high/50 transition-colors"
+                  className="group rounded-xl px-3 py-3 transition-colors hover:bg-surface-container-low/60"
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                        <Link2 className="w-6 h-6" />
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                      <Link2 className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="truncate max-w-md">{result.url}</span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                          {(result.similarity * 100).toFixed(0)}% match
+                        </span>
                       </div>
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={`/-/links/${result.id}`}
-                              className="text-xl font-semibold text-primary hover:underline truncate"
-                            >
-                              go/{result.shortCode}
-                            </Link>
-                            <a
-                              href={`/${result.shortCode}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-on-surface-variant hover:text-primary"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-muted-foreground bg-surface-container px-2 py-1 rounded-md">
-                              {(result.similarity * 100).toFixed(0)}% match
-                            </span>
-                            <Button
-                              variant="text"
-                              size="icon"
-                              className="h-8 w-8 text-on-surface-variant hover:text-primary"
-                              onClick={() =>
-                                copyToClipboard(`go/${result.shortCode}`)
-                              }
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <Link href={`/-/links/${result.id}`}>
-                              <Button
-                                variant="outlined"
-                                size="sm"
-                                className="h-8"
-                              >
-                                Details
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {result.url}
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/${result.shortCode}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xl font-semibold text-primary hover:underline"
+                        >
+                          go/{result.shortCode}
+                        </a>
+                        <a
+                          href={result.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground transition-colors hover:text-primary"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                      {result.description && (
+                        <p className="text-sm text-on-surface-variant leading-relaxed">
+                          {result.description}
                         </p>
-                        {result.description && (
-                          <p className="text-sm text-on-surface-variant line-clamp-2 mt-2">
-                            {result.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 pt-2 mt-2 text-xs text-muted-foreground border-t border-outline-variant/20">
-                          <span className="flex items-center gap-1">
-                            <BarChart3 className="w-3 h-3" />
-                            {result.visits} visits
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {timeAgo(result.createdAt)}
-                          </span>
-                        </div>
+                      )}
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <BarChart3 className="w-3 h-3" />
+                          {result.visits} visits
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Added {timeAgo(result.createdAt)}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Button
+                        variant="text"
+                        size="icon"
+                        className="h-8 w-8 text-on-surface-variant hover:text-primary"
+                        onClick={() =>
+                          copyToClipboard(`go/${result.shortCode}`)
+                        }
+                        aria-label={`Copy go/${result.shortCode}`}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Link href={`/-/links/${result.id}`}>
+                        <Button variant="outlined" size="sm" className="h-8">
+                          Details
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

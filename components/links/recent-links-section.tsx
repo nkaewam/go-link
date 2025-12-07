@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
-import { LinkCard, type LinkData } from "./link-card";
+import { LinkCard } from "./link-card";
+import type { LinkData } from "@/lib/api/links";
 
 interface RecentLinksSectionProps {
   links: LinkData[];
   loading: boolean;
 }
 
-export function RecentLinksSection({ links, loading }: RecentLinksSectionProps) {
+export function RecentLinksSection({
+  links,
+  loading,
+}: RecentLinksSectionProps) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between px-2">
@@ -18,7 +22,7 @@ export function RecentLinksSection({ links, loading }: RecentLinksSectionProps) 
           <Clock className="w-5 h-5 text-primary" />
           Recently Created
         </h2>
-        <Link href="/browse">
+        <Link href="/-/browse">
           <Button
             variant="text"
             size="sm"
@@ -45,4 +49,3 @@ export function RecentLinksSection({ links, loading }: RecentLinksSectionProps) 
     </div>
   );
 }
-

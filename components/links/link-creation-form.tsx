@@ -39,7 +39,11 @@ interface LinkCreationFormProps {
   onError?: (error: Error) => void;
 }
 
-export function LinkCreationForm({ onSubmit, submitting, onError }: LinkCreationFormProps) {
+export function LinkCreationForm({
+  onSubmit,
+  submitting,
+  onError,
+}: LinkCreationFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,7 +61,9 @@ export function LinkCreationForm({ onSubmit, submitting, onError }: LinkCreation
       if (error instanceof Error && error.message === "Alias already exists") {
         form.setError("alias", { message: "Alias already exists" });
       } else if (onError) {
-        onError(error instanceof Error ? error : new Error("An error occurred"));
+        onError(
+          error instanceof Error ? error : new Error("An error occurred")
+        );
       }
     }
   };
@@ -103,8 +109,8 @@ export function LinkCreationForm({ onSubmit, submitting, onError }: LinkCreation
                   </FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-2">
-                      <span className="text-xl font-medium text-primary font-mono">
-                        go/
+                      <span className="text-xl font-medium font-mono">
+                        go<span className="text-primary">/</span>
                       </span>
                       <Input
                         placeholder="google"
@@ -160,4 +166,3 @@ export function LinkCreationForm({ onSubmit, submitting, onError }: LinkCreation
     </Card>
   );
 }
-

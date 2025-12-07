@@ -6,6 +6,7 @@ import {
   RecentLinksSection,
 } from "@/components/links";
 import { useRecentLinks, useCreateLink } from "@/lib/hooks/use-links";
+import { Link2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Home() {
