@@ -167,6 +167,18 @@ export type AnalyticsData = {
   }>;
 };
 
+export type TopLinkData = LinkData & {
+  updatedAt: string;
+  totalVisits: number;
+  visitsInRange: number;
+};
+
+export type TopLinksResponse = {
+  links: TopLinkData[];
+  range: string;
+  limit: number;
+};
+
 /**
  * Fetch analytics for a link
  */
@@ -180,6 +192,68 @@ export async function fetchLinkAnalytics(
       throw new Error("Link not found");
     }
     throw new Error("Failed to fetch analytics");
+  }
+  return res.json();
+}
+
+/**
+ * Fetch top links by visits in a time range
+ */
+export async function fetchTopLinks(
+  limit: number = 10,
+  range: "7d" | "30d" | "90d" = "30d"
+): Promise<TopLinksResponse> {
+  const res = await fetch(
+    `/-/api/analytics/top-links?limit=${limit}&range=${range}`
+  );
+  if (!res.ok) {
+    const error = new Error(`Failed to fetch top links: ${res.status}`);
+    (error as any).status = res.status;
+    throw error;
+  }
+  return res.json();
+}
+
+/**
+ * Fetch low usage links (links with few or no visits in a time range)
+ */
+export async function fetchLowUsageLinks(
+  limit: number = 10,
+  range: "7d" | "30d" | "90d" = "30d"
+): Promise<TopLinksResponse> {
+  const res = await fetch(
+    `/-/api/analytics/low-usage-links?limit=${limit}&range=${range}`
+  );
+  if (!res.ok) {
+    const error = new Error(`Failed to fetch low usage links: ${res.status}`);
+    (error as any).status = res.status;
+    throw error;
+  }
+  return res.json();
+}
+
+export type AggregatedClicksData = {
+  range: string;
+  dailyClicks: Array<{
+    date: string;
+    count: number;
+  }>;
+  totalClicks: number;
+};
+
+/**
+ * Fetch aggregated clicks over time
+ */
+export async function fetchAggregatedClicks(
+  range: "7d" | "30d" | "90d" = "30d"
+): Promise<AggregatedClicksData> {
+  const res = await fetch(
+    `/-/api/analytics/aggregated-clicks?range=${range}`
+  );
+  if (!res.ok) {
+    const error = new Error(`Failed to fetch aggregated clicks: ${res.status}`);
+    (error as any).status = res.status;
+    throw error;
   }
   return res.json();
 }

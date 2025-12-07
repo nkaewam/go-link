@@ -3,13 +3,14 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, Home, Table, Moon, Sun } from "lucide-react"
+import { Search, Home, Table, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
   { icon: Table, label: "Browse", href: "/-/browse" },
+  { icon: BarChart3, label: "Analytics", href: "/-/analytics" },
 ]
 
 export function Sidebar() {

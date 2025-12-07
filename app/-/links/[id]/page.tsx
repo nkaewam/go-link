@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateRangeSelector } from "@/components/ui/date-range-selector";
 import {
   Copy,
   ExternalLink,
@@ -208,29 +209,7 @@ export default function LinkDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-on-surface">Activity</h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={range === "7d" ? "filled" : "outlined"}
-                size="sm"
-                onClick={() => setRange("7d")}
-              >
-                7d
-              </Button>
-              <Button
-                variant={range === "30d" ? "filled" : "outlined"}
-                size="sm"
-                onClick={() => setRange("30d")}
-              >
-                30d
-              </Button>
-              <Button
-                variant={range === "90d" ? "filled" : "outlined"}
-                size="sm"
-                onClick={() => setRange("90d")}
-              >
-                90d
-              </Button>
-            </div>
+            <DateRangeSelector value={range} onChange={setRange} />
           </div>
 
           {analyticsLoading ? (

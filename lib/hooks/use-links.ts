@@ -7,12 +7,17 @@ import {
   searchLinks,
   fetchLink,
   fetchLinkAnalytics,
+  fetchTopLinks,
+  fetchLowUsageLinks,
+  fetchAggregatedClicks,
   type LinkData,
   type LinksResponse,
   type CreateLinkParams,
   type UpdateLinkParams,
   type SearchResult,
   type AnalyticsData,
+  type TopLinksResponse,
+  type AggregatedClicksData,
 } from "@/lib/api/links";
 
 /**
@@ -114,6 +119,44 @@ export function useLinkAnalytics(
     queryKey: [...linkKeys.all, "analytics", id, range] as const,
     queryFn: () => fetchLinkAnalytics(id, range),
     enabled: !!id,
+  });
+}
+
+/**
+ * Hook to fetch top links by visits
+ */
+export function useTopLinks(
+  limit: number = 10,
+  range: "7d" | "30d" | "90d" = "30d"
+) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "top-links", limit, range] as const,
+    queryFn: () => fetchTopLinks(limit, range),
+  });
+}
+
+/**
+ * Hook to fetch low usage links
+ */
+export function useLowUsageLinks(
+  limit: number = 10,
+  range: "7d" | "30d" | "90d" = "30d"
+) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "low-usage-links", limit, range] as const,
+    queryFn: () => fetchLowUsageLinks(limit, range),
+  });
+}
+
+/**
+ * Hook to fetch aggregated clicks over time
+ */
+export function useAggregatedClicks(
+  range: "7d" | "30d" | "90d" = "30d"
+) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "aggregated-clicks", range] as const,
+    queryFn: () => fetchAggregatedClicks(range),
   });
 }
 
