@@ -24,10 +24,9 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { useLinks } from "@/lib/hooks/use-links";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, copyToClipboard } from "@/lib/utils";
 import type { LinkData } from "@/lib/api/links";
 import { EditLinkDialog } from "@/components/links/edit-link-dialog";
-import { toast } from "sonner";
 
 // Simple debounce hook implementation
 function useDebounceValue<T>(value: T, delay: number): T {
@@ -169,16 +168,9 @@ export default function BrowsePage() {
                           variant="text"
                           size="icon"
                           className="h-8 w-8 text-on-surface-variant hover:text-primary"
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(
-                                `go/${link.shortCode}`
-                              );
-                              toast.success("Copied to clipboard!");
-                            } catch (error) {
-                              toast.error("Failed to copy to clipboard");
-                            }
-                          }}
+                          onClick={() =>
+                            copyToClipboard(`go/${link.shortCode}`)
+                          }
                         >
                           <Copy className="w-4 h-4" />
                         </Button>

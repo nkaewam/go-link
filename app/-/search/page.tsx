@@ -26,10 +26,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { useSearchLinks } from "@/lib/hooks/use-links";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, copyToClipboard } from "@/lib/utils";
 
 const searchSchema = z.object({
   query: z.string().min(1, "Please enter a search term"),
@@ -174,17 +173,10 @@ function SearchPageContent() {
                             <Button
                               variant="text"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(
-                                    `go/${result.shortCode}`
-                                  );
-                                  toast.success("Copied to clipboard!");
-                                } catch (error) {
-                                  toast.error("Failed to copy to clipboard");
-                                }
-                              }}
+                              className="h-8 w-8 text-on-surface-variant hover:text-primary"
+                              onClick={() =>
+                                copyToClipboard(`go/${result.shortCode}`)
+                              }
                             >
                               <Copy className="w-4 h-4" />
                             </Button>

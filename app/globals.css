@@ -90,3 +90,18 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+/* Toast visibility improvements */
+@layer components {
+  [data-sonner-toaster] {
+    --width: 356px;
+    --border-radius: 12px;
+  }
+  
+  [data-sonner-toast] {
+    background: var(--surface-container-highest) !important;
+    color: var(--on-surface) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(8px);
+  }
+}

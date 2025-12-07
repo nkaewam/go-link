@@ -15,8 +15,7 @@ import {
   Link2,
 } from "lucide-react";
 import { useLink, useLinkAnalytics } from "@/lib/hooks/use-links";
-import { timeAgo } from "@/lib/utils";
-import { toast } from "sonner";
+import { timeAgo, copyToClipboard } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { EditLinkDialog } from "@/components/links/edit-link-dialog";
 import Link from "next/link";
@@ -85,15 +84,6 @@ export default function LinkDetailPage() {
       </div>
     );
   }
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard!");
-    } catch (error) {
-      toast.error("Failed to copy to clipboard");
-    }
-  };
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">

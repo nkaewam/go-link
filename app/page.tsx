@@ -6,6 +6,7 @@ import {
   RecentLinksSection,
 } from "@/components/links";
 import { useRecentLinks, useCreateLink } from "@/lib/hooks/use-links";
+import { toast } from "sonner";
 
 export default function Home() {
   const { data: recentLinks = [], isLoading: loading } = useRecentLinks(4);
@@ -24,7 +25,7 @@ export default function Home() {
   }
 
   function handleError(error: Error) {
-    alert(error.message);
+    toast.error(error.message);
   }
 
   return (

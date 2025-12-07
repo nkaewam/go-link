@@ -8,16 +8,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Elevated button: Light gray background with shadow/3D effect
+        elevated:
+          "bg-surface-container-low text-on-surface shadow-md hover:bg-surface-container hover:shadow-lg",
+        // Filled button: Dark purple background with white text
         filled:
-          "bg-primary text-on-primary hover:bg-primary/90 hover:shadow-md hover:elevation-1",
+          "bg-primary-container text-on-primary-container hover:bg-primary-container/90 hover:shadow-md",
+        // Tonal button: Light purple background with darker purple text
         tonal:
-          "bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 hover:shadow-sm",
+          "bg-primary-container/30 text-primary hover:bg-primary-container/40",
+        // Outlined button: Light gray background with dark gray outline
         outlined:
-          "border border-outline bg-transparent text-primary hover:bg-primary/10 focus:bg-primary/10",
+          "border border-outline bg-surface-container-low text-on-surface hover:bg-surface-container focus:bg-surface-container",
+        // Text button: Just text, no background or outline
         text:
           "bg-transparent text-primary hover:bg-primary/10",
-        elevated:
-          "bg-surface-container-low text-primary shadow-sm hover:bg-primary/8 hover:shadow-md hover:elevation-1",
         destructive:
           "bg-error text-on-error hover:bg-error/90 hover:shadow-md",
       },

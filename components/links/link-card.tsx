@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link2, Copy, BarChart3 } from "lucide-react";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, copyToClipboard } from "@/lib/utils";
 import type { LinkData } from "@/lib/api/links";
 
 interface LinkCardProps {
@@ -24,11 +24,8 @@ export function LinkCard({ link }: LinkCardProps) {
           <Button
             variant="text"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary -mr-2 -mt-2"
-            onClick={() => {
-              navigator.clipboard.writeText(`go/${link.shortCode}`);
-              alert("Copied to clipboard!");
-            }}
+            className="h-8 w-8 text-on-surface-variant hover:text-primary -mr-2 -mt-2"
+            onClick={() => copyToClipboard(`go/${link.shortCode}`)}
           >
             <Copy className="w-4 h-4" />
           </Button>
