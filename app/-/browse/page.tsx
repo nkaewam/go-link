@@ -1,9 +1,17 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Search, Copy, Trash2, Edit2, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Search,
+  Copy,
+  Trash2,
+  Edit2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,104 +19,51 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { useEffect, useState, useCallback } from "react"
+} from "@/components/ui/table";
+import { useEffect, useState } from "react";
+import { useLinks } from "@/lib/hooks/use-links";
+import { timeAgo } from "@/lib/utils";
+import type { LinkData } from "@/lib/api/links";
 
-
-// Simple debounce hook implementation if not exists, but let's check if I can just use setTimeout
+// Simple debounce hook implementation
 function useDebounceValue<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
+      setDebouncedValue(value);
+    }, delay);
 
     return () => {
-      clearTimeout(handler)
-    }
-  }, [value, delay])
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-  return debouncedValue
-}
-
-type LinkData = {
-  id: number
-  url: string
-  shortCode: string
-  visits: number
-  createdAt: string
-  owner: string | null
-}
-
-type PaginationData = {
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-}
-
-function timeAgo(dateString: string) {
-  const date = new Date(dateString)
-  const now = new Date()
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (seconds < 60) return `${seconds}s ago`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  const months = Math.floor(days / 30)
-  return `${months}mo ago`
+  return debouncedValue;
 }
 
 export default function BrowsePage() {
-  const [links, setLinks] = useState<LinkData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
-  const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState<PaginationData | null>(null)
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounceValue(search, 500);
 
-  const debouncedSearch = useDebounceValue(search, 500)
-
-  const fetchLinks = useCallback(async (currentPage: number, currentSearch: string) => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
-        search: currentSearch,
-      })
-      const res = await fetch(`/-/api/links?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        setLinks(data.data)
-        setPagination(data.pagination)
-      }
-    } catch (error) {
-      console.error("Failed to fetch links", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchLinks(page, debouncedSearch)
-  }, [fetchLinks, page, debouncedSearch])
+  const { data, isLoading: loading } = useLinks(page, 10, debouncedSearch);
+  const links = data?.data ?? [];
+  const pagination = data?.pagination ?? null;
 
   // Reset page when search changes
   useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch])
+    setPage(1);
+  }, [debouncedSearch]);
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-on-surface">Browse Links</h1>
-          <p className="text-on-surface-variant mt-1">Manage and view all your go links</p>
+          <p className="text-on-surface-variant mt-1">
+            Manage and view all your go links
+          </p>
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
           <div className="relative flex-1 md:w-80">
@@ -128,12 +83,24 @@ export default function BrowsePage() {
           <Table>
             <TableHeader className="bg-surface-container-highest/50">
               <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Alias</TableHead>
-                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Destination</TableHead>
-                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Visits</TableHead>
-                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Created</TableHead>
-                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">Owner</TableHead>
-                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium text-right">Actions</TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">
+                  Alias
+                </TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">
+                  Destination
+                </TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">
+                  Visits
+                </TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">
+                  Created
+                </TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium">
+                  Owner
+                </TableHead>
+                <TableHead className="h-12 px-6 text-on-surface-variant uppercase text-xs font-medium text-right">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -147,42 +114,68 @@ export default function BrowsePage() {
                 </TableRow>
               ) : links.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No links found.
                   </TableCell>
                 </TableRow>
               ) : (
-                    links.map((link) => (
-                      <TableRow key={link.id} className="group border-outline-variant/10 hover:bg-surface-container-highest/30">
-                        <TableCell className="px-6 py-4 font-medium text-primary font-mono text-base">
-                          <a href={`http://localhost:3000/${link.shortCode}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                            go/{link.shortCode}
-                          </a>
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-on-surface-variant max-w-[300px] truncate">
-                          {link.url}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-on-surface-variant">
-                          {link.visits}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-on-surface-variant">
-                          {timeAgo(link.createdAt)}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-on-surface-variant">
-                          {link.owner || "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-primary" onClick={() => {
-                          navigator.clipboard.writeText(`go/${link.shortCode}`)
-                          alert("Copied to clipboard!")
-                        }}>
+                links.map((link: LinkData) => (
+                  <TableRow
+                    key={link.id}
+                    className="group border-outline-variant/10 hover:bg-surface-container-highest/30"
+                  >
+                    <TableCell className="px-6 py-4 font-medium text-primary font-mono text-base">
+                      <a
+                        href={`http://localhost:3000/${link.shortCode}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        go/{link.shortCode}
+                      </a>
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-on-surface-variant max-w-[300px] truncate">
+                      {link.url}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-on-surface-variant">
+                      {link.visits}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-on-surface-variant">
+                      {timeAgo(link.createdAt)}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-on-surface-variant">
+                      {link.owner || "-"}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="text"
+                          size="icon"
+                          className="h-8 w-8 text-on-surface-variant hover:text-primary"
+                          onClick={() => {
+                            navigator.clipboard.writeText(
+                              `go/${link.shortCode}`
+                            );
+                            alert("Copied to clipboard!");
+                          }}
+                        >
                           <Copy className="w-4 h-4" />
                         </Button>
-                        <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-primary">
+                        <Button
+                          variant="text"
+                          size="icon"
+                          className="h-8 w-8 text-on-surface-variant hover:text-primary"
+                        >
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button variant="text" size="icon" className="h-8 w-8 text-on-surface-variant hover:text-error hover:bg-error/10">
+                        <Button
+                          variant="text"
+                          size="icon"
+                          className="h-8 w-8 text-on-surface-variant hover:text-error hover:bg-error/10"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -199,7 +192,22 @@ export default function BrowsePage() {
           <div className="text-sm text-on-surface-variant">
             {pagination && (
               <>
-                Showing <span className="font-medium">{Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}</span> to <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span className="font-medium">{pagination.total}</span> results
+                Showing{" "}
+                <span className="font-medium">
+                  {Math.min(
+                    (pagination.page - 1) * pagination.limit + 1,
+                    pagination.total
+                  )}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total
+                  )}
+                </span>{" "}
+                of <span className="font-medium">{pagination.total}</span>{" "}
+                results
               </>
             )}
           </div>
@@ -207,7 +215,7 @@ export default function BrowsePage() {
             <Button
               variant="outlined"
               size="sm"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
               className="h-8 w-8 p-0"
             >
@@ -219,8 +227,12 @@ export default function BrowsePage() {
             <Button
               variant="outlined"
               size="sm"
-              onClick={() => setPage(p => Math.min(pagination?.totalPages || 1, p + 1))}
-              disabled={!pagination || page === pagination.totalPages || loading}
+              onClick={() =>
+                setPage((p) => Math.min(pagination?.totalPages || 1, p + 1))
+              }
+              disabled={
+                !pagination || page === pagination.totalPages || loading
+              }
               className="h-8 w-8 p-0"
             >
               <ChevronRight className="h-4 w-4" />
@@ -229,5 +241,5 @@ export default function BrowsePage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

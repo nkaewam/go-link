@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -18,36 +18,12 @@ import {
 import { Search, Link2, Copy, BarChart3, Clock, Loader2, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-
-type SearchResult = {
-  id: number
-  url: string
-  shortCode: string
-  description: string | null
-  visits: number
-  createdAt: string
-  similarity: number
-}
+import { useSearchLinks } from "@/lib/hooks/use-links"
+import { timeAgo } from "@/lib/utils"
 
 const searchSchema = z.object({
   query: z.string().min(1, "Please enter a search term"),
 })
-
-function timeAgo(dateString: string) {
-  const date = new Date(dateString)
-  const now = new Date()
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (seconds < 60) return `${seconds}s ago`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  const months = Math.floor(days / 30)
-  return `${months}mo ago`
-}
 
 export default function SearchPage() {
   return (
@@ -58,10 +34,8 @@ export default function SearchPage() {
 }
 
 function SearchPageContent() {
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const [searched, setSearched] = useState(false)
-  const [lastSearchedQuery, setLastSearchedQuery] = useState("")
 
   const form = useForm<z.infer<typeof searchSchema>>({
     resolver: zodResolver(searchSchema),
@@ -71,35 +45,24 @@ function SearchPageContent() {
   })
 
   const searchParams = useSearchParams()
-
-  const performSearch = useCallback(async (query: string) => {
-    setLoading(true)
-    setSearched(true)
-    setLastSearchedQuery(query)
-    try {
-      const res = await fetch(`/-/api/search?q=${encodeURIComponent(query)}`)
-      if (res.ok) {
-        const data = await res.json()
-        setResults(data)
-      }
-    } catch (error) {
-      console.error("Search failed", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const { data: results = [], isLoading: loading } = useSearchLinks(
+    searchQuery,
+    searched && searchQuery.length > 0
+  )
 
   const onSubmit = (values: z.infer<typeof searchSchema>) => {
-    performSearch(values.query)
+    setSearchQuery(values.query)
+    setSearched(true)
   }
 
   useEffect(() => {
     const query = searchParams.get("q")
     if (query) {
       form.setValue("query", query)
-      performSearch(query)
+      setSearchQuery(query)
+      setSearched(true)
     }
-  }, [searchParams, performSearch, form])
+  }, [searchParams, form])
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-hidden relative">
@@ -151,7 +114,7 @@ function SearchPageContent() {
               </div>
             ) : searched && results.length === 0 ? (
               <div className="text-center py-10 text-muted-foreground">
-                No results found for "{lastSearchedQuery}".
+                No results found for "{searchQuery}".
               </div>
             ) : (
               results.map((result) => (
