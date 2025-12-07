@@ -5,6 +5,31 @@ import { eq, and, ne } from "drizzle-orm"
 import { z } from "zod"
 import { pipeline } from "@xenova/transformers"
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const linkId = parseInt(id, 10)
+    
+    if (isNaN(linkId)) {
+      return NextResponse.json({ error: "Invalid link ID" }, { status: 400 })
+    }
+
+    const [link] = await db.select().from(links).where(eq(links.id, linkId))
+    
+    if (!link) {
+      return NextResponse.json({ error: "Link not found" }, { status: 404 })
+    }
+
+    return NextResponse.json(link)
+  } catch (error) {
+    console.error("Error fetching link:", error)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+  }
+}
+
 // Singleton for the embedding pipeline
 let extractor: any = null;
 async function getExtractor() {

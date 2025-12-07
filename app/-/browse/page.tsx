@@ -11,7 +11,9 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
 } from "lucide-react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -131,14 +133,23 @@ export default function BrowsePage() {
                     className="group border-outline-variant/10 hover:bg-surface-container-highest/30"
                   >
                     <TableCell className="px-6 py-4 font-medium text-primary font-mono text-base">
-                      <a
-                        href={`http://localhost:3000/${link.shortCode}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        go/{link.shortCode}
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/-/links/${link.id}`}
+                          className="hover:underline"
+                        >
+                          go/{link.shortCode}
+                        </Link>
+                        <a
+                          href={`/${link.shortCode}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-on-surface-variant hover:text-primary"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-on-surface-variant max-w-[300px] truncate">
                       {link.url}

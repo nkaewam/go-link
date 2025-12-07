@@ -5,11 +5,14 @@ import {
   createLink,
   updateLink,
   searchLinks,
+  fetchLink,
+  fetchLinkAnalytics,
   type LinkData,
   type LinksResponse,
   type CreateLinkParams,
   type UpdateLinkParams,
   type SearchResult,
+  type AnalyticsData,
 } from "@/lib/api/links";
 
 /**
@@ -86,6 +89,31 @@ export function useSearchLinks(query: string, enabled: boolean = true) {
     queryKey: linkKeys.search(query),
     queryFn: () => searchLinks(query),
     enabled: enabled && query.length > 0,
+  });
+}
+
+/**
+ * Hook to fetch a single link by ID
+ */
+export function useLink(id: number) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "detail", id] as const,
+    queryFn: () => fetchLink(id),
+    enabled: !!id,
+  });
+}
+
+/**
+ * Hook to fetch link analytics
+ */
+export function useLinkAnalytics(
+  id: number,
+  range: "7d" | "30d" | "90d" = "30d"
+) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "analytics", id, range] as const,
+    queryFn: () => fetchLinkAnalytics(id, range),
+    enabled: !!id,
   });
 }
 

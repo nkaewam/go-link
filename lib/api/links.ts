@@ -143,3 +143,44 @@ export async function searchLinks(query: string): Promise<SearchResult[]> {
   return res.json();
 }
 
+/**
+ * Fetch a single link by ID
+ */
+export async function fetchLink(id: number): Promise<LinkData & { updatedAt: string }> {
+  const res = await fetch(`/-/api/links/${id}`);
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error("Link not found");
+    }
+    throw new Error("Failed to fetch link");
+  }
+  return res.json();
+}
+
+export type AnalyticsData = {
+  linkId: number;
+  range: string;
+  totalVisits: number;
+  dailyVisits: Array<{
+    date: string;
+    count: number;
+  }>;
+};
+
+/**
+ * Fetch analytics for a link
+ */
+export async function fetchLinkAnalytics(
+  id: number,
+  range: "7d" | "30d" | "90d" = "30d"
+): Promise<AnalyticsData> {
+  const res = await fetch(`/-/api/links/${id}/analytics?range=${range}`);
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error("Link not found");
+    }
+    throw new Error("Failed to fetch analytics");
+  }
+  return res.json();
+}
+

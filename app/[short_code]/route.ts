@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { links } from "@/lib/db/schema"
+import { links, linkVisits } from "@/lib/db/schema"
 import { NextResponse } from "next/server"
 import { eq, sql } from "drizzle-orm"
 
@@ -17,12 +17,23 @@ export async function GET(
       return NextResponse.redirect(new URL("/-/search?q=" + shortCode, request.url))
     }
 
-    // Increment visits asynchronously (fire and forget)
+    // Track visit asynchronously (fire and forget)
     // We don't await this to speed up the redirect
-    db.update(links)
-      .set({ visits: sql`${links.visits} + 1` })
-      .where(eq(links.id, link.id))
-      .catch((err) => console.error("Error incrementing visits:", err))
+    const referrer = request.headers.get("referer") || null
+    
+    Promise.all([
+      // Increment visits counter
+      db.update(links)
+        .set({ visits: sql`${links.visits} + 1` })
+        .where(eq(links.id, link.id)),
+      // Insert visit record
+      db.insert(linkVisits).values({
+        linkId: link.id,
+        visitedAt: new Date(),
+        referrer,
+        owner: link.owner,
+      })
+    ]).catch((err) => console.error("Error tracking visit:", err))
 
     return NextResponse.redirect(link.url)
   } catch (error) {
