@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { EditLinkDialog } from "@/components/links/edit-link-dialog";
 import Link from "next/link";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
   ChartContainer,
@@ -256,7 +256,11 @@ export default function LinkDetailPage() {
                   data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="3 3"
+                    stroke="rgba(255, 255, 255, 0.1)"
+                  />
                   <XAxis
                     dataKey="date"
                     tickLine={false}
@@ -267,6 +271,12 @@ export default function LinkDetailPage() {
                       const step = Math.ceil(chartData.length / 7);
                       return index % step === 0 ? value : "";
                     }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    tickFormatter={(value) => value.toString()}
                   />
                   <ChartTooltip
                     content={
