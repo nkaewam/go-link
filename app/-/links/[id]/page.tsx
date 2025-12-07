@@ -17,9 +17,16 @@ import {
 import { useLink, useLinkAnalytics } from "@/lib/hooks/use-links";
 import { timeAgo } from "@/lib/utils";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { EditLinkDialog } from "@/components/links/edit-link-dialog";
 import Link from "next/link";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 export default function LinkDetailPage() {
   const params = useParams();
@@ -33,6 +40,25 @@ export default function LinkDetailPage() {
     id,
     range
   );
+
+  const chartConfig = {
+    visits: {
+      label: "Visits",
+      color: "#9e86ff",
+    },
+  } satisfies ChartConfig;
+
+  const chartData = useMemo(() => {
+    if (!analytics?.dailyVisits) return [];
+    return analytics.dailyVisits.map((day) => ({
+      date: new Date(day.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      visits: day.count,
+      fullDate: day.date,
+    }));
+  }, [analytics]);
 
   if (linkLoading) {
     return (
@@ -59,11 +85,6 @@ export default function LinkDetailPage() {
       </div>
     );
   }
-
-  const maxVisits = analytics?.dailyVisits.reduce(
-    (max, day) => Math.max(max, day.count),
-    0
-  ) || 1;
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -170,7 +191,9 @@ export default function LinkDetailPage() {
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-sm text-on-surface-variant">Last Updated</p>
+                  <p className="text-sm text-on-surface-variant">
+                    Last Updated
+                  </p>
                   <p className="text-lg font-semibold text-on-surface">
                     {timeAgo(link.updatedAt)}
                   </p>
@@ -197,21 +220,21 @@ export default function LinkDetailPage() {
             <h2 className="text-xl font-bold text-on-surface">Activity</h2>
             <div className="flex items-center gap-2">
               <Button
-                variant={range === "7d" ? "default" : "outlined"}
+                variant={range === "7d" ? "filled" : "outlined"}
                 size="sm"
                 onClick={() => setRange("7d")}
               >
                 7d
               </Button>
               <Button
-                variant={range === "30d" ? "default" : "outlined"}
+                variant={range === "30d" ? "filled" : "outlined"}
                 size="sm"
                 onClick={() => setRange("30d")}
               >
                 30d
               </Button>
               <Button
-                variant={range === "90d" ? "default" : "outlined"}
+                variant={range === "90d" ? "filled" : "outlined"}
                 size="sm"
                 onClick={() => setRange("90d")}
               >
@@ -227,35 +250,51 @@ export default function LinkDetailPage() {
           ) : analytics && analytics.dailyVisits.length > 0 ? (
             <div className="space-y-4">
               {/* Chart */}
-              <div className="h-64 flex items-end gap-1 pb-4 border-b border-outline-variant/10">
-                {analytics.dailyVisits.map((day, index) => {
-                  const height = (day.count / maxVisits) * 100;
-                  const date = new Date(day.date);
-                  const dayLabel = date.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  });
-
-                  return (
-                    <div
-                      key={day.date}
-                      className="flex-1 flex flex-col items-center gap-1 group relative"
-                      title={`${dayLabel}: ${day.count} visits`}
-                    >
-                      <div
-                        className="w-full bg-primary rounded-t transition-all hover:bg-primary/80 min-h-[4px]"
-                        style={{ height: `${Math.max(height, 2)}%` }}
+              <ChartContainer config={chartConfig} className="h-64 w-full">
+                <BarChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    tickFormatter={(value, index) => {
+                      // Show every nth label based on data length
+                      const step = Math.ceil(chartData.length / 7);
+                      return index % step === 0 ? value : "";
+                    }}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={(value, payload) => {
+                          if (payload && payload[0]) {
+                            const fullDate = payload[0].payload.fullDate;
+                            return new Date(fullDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            );
+                          }
+                          return value;
+                        }}
                       />
-                      {index % Math.ceil(analytics.dailyVisits.length / 7) ===
-                        0 && (
-                        <span className="text-xs text-on-surface-variant transform -rotate-45 origin-top-left whitespace-nowrap">
-                          {dayLabel}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    }
+                  />
+                  <Bar
+                    dataKey="visits"
+                    fill="var(--color-visits)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ChartContainer>
 
               {/* Summary */}
               <div className="text-sm text-on-surface-variant">
@@ -292,4 +331,3 @@ export default function LinkDetailPage() {
     </div>
   );
 }
-
