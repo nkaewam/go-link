@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useLink, useLinkAnalytics } from "@/lib/hooks/use-links";
 import { timeAgo, copyToClipboard } from "@/lib/utils";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { EditLinkDialog } from "@/components/links/edit-link-dialog";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
@@ -34,12 +34,68 @@ export default function LinkDetailPage() {
   const id = parseInt(params.id as string, 10);
   const [range, setRange] = useState<"7d" | "30d" | "90d">("30d");
   const [editingLink, setEditingLink] = useState<any>(null);
+  const [faviconError, setFaviconError] = useState(false);
+  const [ogImage, setOgImage] = useState<string | null>(null);
+  const [ogLoading, setOgLoading] = useState(false);
+  const [ogError, setOgError] = useState<string | null>(null);
 
   const { data: link, isLoading: linkLoading } = useLink(id);
   const { data: analytics, isLoading: analyticsLoading } = useLinkAnalytics(
     id,
     range
   );
+
+  const normalizedUrl = useMemo(() => {
+    if (!link?.url) return null;
+    try {
+      const hasProtocol = /^https?:\/\//i.test(link.url);
+      return new URL(hasProtocol ? link.url : `https://${link.url}`).href;
+    } catch {
+      return null;
+    }
+  }, [link?.url]);
+
+  const faviconUrl = useMemo(() => {
+    if (!normalizedUrl || faviconError) return null;
+    try {
+      const hostname = new URL(normalizedUrl).hostname;
+      return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+    } catch {
+      return null;
+    }
+  }, [normalizedUrl, faviconError]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!normalizedUrl) {
+      setOgImage(null);
+      return;
+    }
+    setOgLoading(true);
+    setOgError(null);
+    fetch(`/-/api/metadata?url=${encodeURIComponent(normalizedUrl)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch metadata");
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setOgImage(data.ogImage || null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setOgImage(null);
+        setOgError("No preview image found");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setOgLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedUrl]);
 
   const chartConfig = {
     visits: {
@@ -113,7 +169,17 @@ export default function LinkDetailPage() {
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <Link2 className="w-5 h-5" />
+                  {faviconUrl ? (
+                    <img
+                      src={faviconUrl}
+                      alt="Favicon"
+                      className="w-5 h-5 rounded-[4px] shadow-sm"
+                      onError={() => setFaviconError(true)}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Link2 className="w-5 h-5" />
+                  )}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-primary font-mono">
@@ -203,6 +269,86 @@ export default function LinkDetailPage() {
           </div>
         </div>
       </Card>
+
+      {normalizedUrl && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <Card className="border-none bg-surface-container-low overflow-hidden rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-on-surface">OG Image</h2>
+            </div>
+            <div className="rounded-2xl overflow-hidden border border-outline-variant/20 bg-surface-container-high h-[420px] flex items-center justify-center">
+              {ogLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              ) : ogImage ? (
+                <img
+                  src={ogImage}
+                  alt={`OG preview of ${link.url}`}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="text-sm text-on-surface-variant text-center px-6 py-12">
+                  {ogError || "No OG image available for this link."}
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-on-surface-variant mt-3">
+              Showing the Open Graph preview image when available.
+            </p>
+          </Card>
+
+          <Card className="border-none bg-surface-container-low overflow-hidden rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-on-surface">
+                Live Preview
+              </h2>
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={() => window.open(normalizedUrl, "_blank")}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open
+              </Button>
+            </div>
+            <div className="relative rounded-2xl overflow-hidden border border-outline-variant/20 bg-surface-container-high group">
+              <div className="w-full h-[420px] overflow-hidden">
+                <iframe
+                  title={`Preview of ${link.url}`}
+                  src={normalizedUrl}
+                  loading="lazy"
+                  scrolling="no"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  className="bg-surface-container-high pointer-events-none select-none"
+                  style={{
+                    width: "200%",
+                    height: "1680px",
+                    transform: "scale(0.50)",
+                    transformOrigin: "top left",
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                aria-label={`Open go/${link.shortCode}`}
+                onClick={() =>
+                  window.open(`http://go/${link.shortCode}`, "_blank")
+                }
+                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              >
+                <div className="flex items-center gap-2 text-white text-sm font-medium bg-black/50 px-3 py-2 rounded-full shadow-lg">
+                  <ExternalLink className="w-4 h-4" />
+                  Open go/{link.shortCode}
+                </div>
+              </button>
+            </div>
+            <p className="text-sm text-on-surface-variant mt-3">
+              Live preview uses an embedded frame; some sites may block
+              embedding.
+            </p>
+          </Card>
+        </div>
+      )}
 
       {/* Analytics Card */}
       <Card className="border-none bg-surface-container-low overflow-hidden rounded-3xl p-6">
