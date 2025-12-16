@@ -32,6 +32,9 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME="0.0.0.0"
 
+RUN apt-get update && apt-get install -y adduser && rm -rf /var/lib/apt/lists/*
+
+
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
