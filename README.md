@@ -6,7 +6,7 @@ A modern, intelligent URL shortener for your internal tools and resources. Creat
 
 ## Features
 
-- 🚀 **Smart Shortening**: Create custom `go/alias` links for any URL.
+- 🚀 **Smart Shortening**: Create custom `go/<alias>` links for any URL.
 - 🧠 **Semantic Search**: Can't remember the exact alias? Search by description or concept using our AI-powered vector search.
 - 📊 **Analytics**: Track visit counts for every link to understand usage patterns.
 - 🎨 **Modern UI**: Built with Material 3 Expressive design principles for a beautiful, responsive experience.
@@ -79,11 +79,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to start c
 ## Project Structure
 
 - `app/`: Next.js App Router pages and API routes.
-    - `page.tsx`: Main dashboard for creating links.
-    - `[short_code]/`: Dynamic route for handling link redirects.
-    - `-/browse/`: Page to browse all created links.
-    - `-/search/`: Semantic search interface.
-    - `-/api/`: Backend API endpoints.
+  - `page.tsx`: Main dashboard for creating links.
+  - `[short_code]/`: Dynamic route for handling link redirects.
+  - `-/browse/`: Page to browse all created links.
+  - `-/search/`: Semantic search interface.
+  - `-/api/`: Backend API endpoints.
 - `lib/db/`: Database configuration and Drizzle schema.
 - `components/`: Reusable UI components.
 - `drizzle/`: Database migration files.
