@@ -24,8 +24,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Create non-root user and group
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+# Install passwd package (contains groupadd/useradd) if not already available
+RUN if ! command -v groupadd >/dev/null 2>&1; then \
+    apt-get update && \
+    apt-get install -y --no-install-recommends passwd && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*; \
+    fi && \
+    groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs --shell /bin/bash --create-home nextjs
 
 # Copy necessary files with proper ownership
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
