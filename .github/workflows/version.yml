@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
 
       - name: Setup Git
         run: |
@@ -92,6 +92,8 @@ jobs:
 
       - name: Create and push tag
         if: steps.version.outputs.bump_type != 'none'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
           
@@ -102,6 +104,7 @@ jobs:
           fi
           
           git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
+          git remote set-url origin https://${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git
           git push origin "$NEW_VERSION"
           echo "✅ Created and pushed tag: $NEW_VERSION"
 
