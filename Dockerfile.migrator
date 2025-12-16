@@ -4,7 +4,7 @@ FROM oven/bun:1
 WORKDIR /app
 
 # Create minimal package.json with only drizzle-kit
-RUN echo '{"name":"go-links-migrator","version":"1.0.0","dependencies":{"drizzle-kit":"^0.31.8","drizzle-orm":"^0.45.0"}, "dotenv": "^17.2.3"}' > package.json
+RUN echo '{"name":"go-links-migrator","version":"1.0.0","dependencies":{"drizzle-kit":"^0.31.8","drizzle-orm":"^0.45.0", "dotenv": "^17.2.3"}}' > package.json
 
 # Install drizzle-kit and dotenv (needed for drizzle.config.ts)
 RUN bun install --frozen-lockfile
