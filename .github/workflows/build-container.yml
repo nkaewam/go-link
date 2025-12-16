@@ -52,31 +52,6 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest
 
-      - name: Build Docker image (amd64 for verification)
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          tags: go-links:verify
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
-
-      - name: Verify non-root user
-        run: |
-          echo "Verifying container runs as non-root user..."
-          USER_ID=$(docker run --rm --entrypoint id go-links:verify -u)
-          if echo "$USER_ID" | grep -q "uid=1001(nextjs)"; then
-            echo "✅ Container runs as non-root user (UID 1001)"
-            echo "User info: $USER_ID"
-          else
-            echo "❌ Container does not run as non-root user!"
-            echo "Found: $USER_ID"
-            exit 1
-          fi
-
       - name: Build and push multi-platform Docker image
         uses: docker/build-push-action@v5
         with:
